@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Codigo de Tienda en Línea</title>
+  <link rel="stylesheet" type="text/css" href="style.css">
+  <script>
+document.addEventListener("DOMContentLoaded", function () {
+  // Cargar el carrito global desde localStorage, o inicializarlo vacío si no hay datos previos.
+  let globalCart = JSON.parse(localStorage.getItem("globalCart")) || [];
+
+  // Referencia a la tabla del carrito y su tbody
+  const cartTable = document.getElementById("lista-carrito");
+  let cartTbody = cartTable.querySelector("tbody");
+  if (!cartTbody) {
+    cartTbody = document.createElement("tbody");
+    cartTable.appendChild(cartTbody);
+  }
+
+  // Función para actualizar localStorage con el carrito global
+  function updateLocalStorage() {
+    localStorage.setItem("globalCart", JSON.stringify(globalCart));
+  }
+
+  // Función para actualizar la interfaz del carrito: muestra la imagen, descripción, precio de cada producto y el total.
+  function updateCartUI() {
+    cartTbody.innerHTML = "";
+    let totalPrice = 0;
+    
+    globalCart.forEach((item, index) => {
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td><img src="${item.image}" width="50" alt="${item.desc}"></td>
+        <td>${item.desc}</td>
+        <td>$${item.price.toFixed(2)}</td>
+        <td><button class="remove" data-index="${index}">X</button></td>
+      `;
+      cartTbody.appendChild(row);
+      totalPrice += item.price;
+    });
+
+    if (globalCart.length > 0) {
+      const totalRow = document.createElement("tr");
+      totalRow.innerHTML = `
+        <td colspan="2"><strong>Total:</strong></td>
+        <td colspan="2"><strong>$${totalPrice.toFixed(2)}</strong></td>
+      `;
+      cartTbody.appendChild(totalRow);
+    }
+  }
+  
+  // Al cargar la página se actualiza la interfaz con los posibles productos guardados
+  updateCartUI();
+
+  // Agregar productos al carrito
+  const addCartButtons = document.querySelectorAll(".agregar-carrito");
+  addCartButtons.forEach(function (button) {
+    button.addEventListener("click", function (e) {
+      e.preventDefault();
+      // Subir en el DOM hasta el contenedor del producto
+      const productDiv = this.closest(".product");
+      // Extraer la URL de la imagen
+      const image = productDiv.querySelector("img").src;
+      // Extraer la descripción (se toma el primer párrafo dentro del contenedor .product-txt)
+      const description = productDiv.querySelector(".product-txt p").textContent;
+      // Extraer el precio y convertirlo a número (se remueve el símbolo "$")
+      const priceText = productDiv.querySelector(".precio").textContent;
+      const price = parseFloat(priceText.replace("$", ""));
+      
+      // Crear el objeto producto
+      const product = {
+        image: image,
+        desc: description,
+        price: price
+      };
+      
+      // Agregar el producto al carrito global
+      globalCart.push(product);
+      updateLocalStorage();
+      updateCartUI();
+    });
+  });
+
+  // Permitir eliminar un producto individualmente (delegación de eventos en el tbody de la tabla)
+  cartTbody.addEventListener("click", function (e) {
+    if (e.target.classList.contains("remove")) {
+      const index = e.target.getAttribute("data-index");
+      globalCart.splice(index, 1);
+      updateLocalStorage();
+      updateCartUI();
+    }
+  });
+
+  // Vaciar el carrito global por completo al hacer click en "Vaciar Carrito"
+  document.getElementById("vaciar-carrito").addEventListener("click", function (e) {
+    e.preventDefault();
+    globalCart = [];
+    updateLocalStorage();
+    updateCartUI();
+  });
+});
+  </script>
+</head>
+<style>
+body {
+  font-family: "Poppins", sans-serif;
+  font-weight: <weight>;
+  font-style: normal;
+  font-size: 16px;
+  margin: 0;
+  text-align: justify;
+}
+
+@media (max-width: 768px) {
+    body {
+        font-size: 16px;
+    }
+    .container {
+        max-width: 100%;
+        padding: 10px;
+    }
+    .menu {
+        flex-direction: column;
+        align-items: center;
+    }
+    .header-content {
+        flex-direction: column;
+        text-align: center;
+    }
+}
+
+container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.header {
+  background-color: #F7EFD8;
+  display: flex;
+  align-items: center;
+  min-height: 10vh;
+  padding: 50px 0;
+  height: 30px;
+}
+
+.menu-icono {
+  width: 25px;
+}
+
+.menu label {
+  cursor: pointer;
+  display: none;
+}
+
+.submenu {
+  position: relative;
+}
+
+.submenu #carrito {
+  display: none;
+}
+
+.menu { 
+position: absolute;
+top: 0;
+left: 0;
+right: 0;
+display: flex;
+margin-left: 50px;
+margin-right: 50px;
+align-items: center;
+justify-content: space-between;
+}
+
+.logo {
+  color:#f1666d;
+  font-size: 25px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+ul li {
+  position: relative;
+  float: left;
+  display: inline;
+
+}
+
+.navbar ul li a{
+  font-size: 18px;
+  padding: 20px;
+  color: #333128;
+  display: block;
+  font-weight: 600;
+}
+
+ul {
+  list-style: none;
+}
+
+.header-content {
+  display: flex;
+}
+
+.header-txt {
+  flex-basis: 50%;
+}
+
+.btn-3 {
+  display: inline-block;
+  margin-top: 5px;
+  padding: 7px 25px;
+  color: #FFFFFF;
+  background-color: #f1666d;
+  cursor: pointer;
+}
+
+form {
+  display: flex;
+  margin-top: 30px;
+}
+
+input {
+  padding: 17px 35px;
+  border-radius: 35px;
+  border: 1px solid #f1666d;
+  outline: none;  
+}
+
+.footer {
+  padding: 50px 0;
+  background-color: #f1666d;
+}
+
+.footer-content {
+  display: flex;
+  justify-content: space-between;
+  max-width: 1200px;
+  margin:  auto;
+}
+
+.link h3 {
+  color:#FFFFFF;  
+}
+
+</style>
+
+<body>
+<header class="header">
+  <div class="menu container">
+  <!-- Icono SVG a la izquierda -->
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="40px" 
+    height="40px">
+  <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+</svg>
+
+<!-- Menú de navegación centrado -->
+    <nav class="navbar">
+      <ul>
+        <li><a href="Index.html">Inicio</a></li>
+        <li><a href="Productos de Tienda.html">Productos</a></li>
+        <li><a href="Contacto.html">Contacto</a></li>
+      </ul>
+    </nav>
+
+<!-- Menú del Carrito -->
+<div>    
+  <ul>
+    <li class="submenu">
+      <!-- Carrito a la derecha -->
+              <div class="icon-car">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" width="40px" 
+                height="40px">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 0 0-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 0 0-16.536-1.84M7.5 14.25 5.106 5.272M6 20.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Zm12.75 0a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z"/> 
+                </svg>
+              </div>
+          <div id="carrito">
+            <table id="lista-carrito">
+              <thead>
+                <tr>
+                  <th>Image</th>
+                  <th>Nombre</th>
+                  <th>Precio</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+            <a href="#" id="vaciar-carrito" class="btn-3">Vaciar Carrito</a>
+          </div>
+        </li>
+      </ul>
+    </div>
+  </div>
+</header>
+
+<section class="contact container">
+  
+  <form>
+   <input type="email" placeholder="Correo"> 
+   <input type="submit" class="btn-3  ">
+  </form>
+
+</section>
+</body>
+</html>

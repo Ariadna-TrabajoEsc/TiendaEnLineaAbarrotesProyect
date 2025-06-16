@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Codigo de Tienda en Línea</title>
+  <link rel="stylesheet" type="text/css" href="style.css">
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+  // Cargar el carrito global desde localStorage, o inicializarlo vacío si no hay datos previos.
+  let globalCart = JSON.parse(localStorage.getItem("globalCart")) || [];
+
+  // Referencia a la tabla del carrito y su tbody
+  const cartTable = document.getElementById("lista-carrito");
+  let cartTbody = cartTable.querySelector("tbody");
+  if (!cartTbody) {
+    cartTbody = document.createElement("tbody");
+    cartTable.appendChild(cartTbody);
+  }
+
+  // Función para actualizar localStorage con el carrito global
+  function updateLocalStorage() {
+    localStorage.setItem("globalCart", JSON.stringify(globalCart));
+  }
+
+  // Función para actualizar la interfaz del carrito: muestra la imagen, descripción, precio de cada producto y el total.
+  function updateCartUI() {
+    cartTbody.innerHTML = "";
+    let totalPrice = 0;
+    
+    globalCart.forEach((item, index) => {
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td><img src="${item.image}" width="50" alt="${item.desc}"></td>
+        <td>${item.desc}</td>
+        <td>$${item.price.toFixed(2)}</td>
+        <td><button class="remove" data-index="${index}">X</button></td>
+      `;
+      cartTbody.appendChild(row);
+      totalPrice += item.price;
+    });
+
+    if (globalCart.length > 0) {
+      const totalRow = document.createElement("tr");
+      totalRow.innerHTML = `
+        <td colspan="2"><strong>Total:</strong></td>
+        <td colspan="2"><strong>$${totalPrice.toFixed(2)}</strong></td>
+      `;
+      cartTbody.appendChild(totalRow);
+    }
+  }
+  
+  // Al cargar la página se actualiza la interfaz con los posibles productos guardados
+  updateCartUI();
+
+  // Agregar productos al carrito
+  const addCartButtons = document.querySelectorAll(".agregar-carrito");
+  addCartButtons.forEach(function (button) {
+    button.addEventListener("click", function (e) {
+      e.preventDefault();
+      // Subir en el DOM hasta el contenedor del producto
+      const productDiv = this.closest(".product");
+      // Extraer la URL de la imagen
+      const image = productDiv.querySelector("img").src;
+      // Extraer la descripción (se toma el primer párrafo dentro del contenedor .product-txt)
+      const description = productDiv.querySelector(".product-txt p").textContent;
+      // Extraer el precio y convertirlo a número (se remueve el símbolo "$")
+      const priceText = productDiv.querySelector(".precio").textContent;
+      const price = parseFloat(priceText.replace("$", ""));
+      
+      // Crear el objeto producto
+      const product = {
+        image: image,
+        desc: description,
+        price: price
+      };
+      
+      // Agregar el producto al carrito global
+      globalCart.push(product);
+      updateLocalStorage();
+      updateCartUI();
+    });
+  });
+
+  // Permitir eliminar un producto individualmente (delegación de eventos en el tbody de la tabla)
+  cartTbody.addEventListener("click", function (e) {
+    if (e.target.classList.contains("remove")) {
+      const index = e.target.getAttribute("data-index");
+      globalCart.splice(index, 1);
+      updateLocalStorage();
+      updateCartUI();
+    }
+  });
+
+  // Vaciar el carrito global por completo al hacer click en "Vaciar Carrito"
+  document.getElementById("vaciar-carrito").addEventListener("click", function (e) {
+    e.preventDefault();
+    globalCart = [];
+    updateLocalStorage();
+    updateCartUI();
+  });
+});
+
+  </script>
+</head>
+
+<style>
+body {
+  font-family: "Poppins", sans-serif;
+  font-weight: <weight>;
+  font-style: normal;
+  font-size: 16px;
+  margin: 0;
+  text-align: justify;
+}
+
+img {
+  max-width: 100%;
+}
+
+@media (max-width: 768px) {
+    body {
+        font-size: 16px;
+    }
+    .container {
+        max-width: 100%;
+        padding: 10px;
+    }
+    .menu {
+        flex-direction: column;
+        align-items: center;
+    }
+    .header-content {
+        flex-direction: column;
+        text-align: center;
+    }
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.header {
+  background-color: #F7EFD8;
+  display: flex;
+  align-items: center;
+  min-height: 30vh;
+  padding: 100px 0;
+}
+
+.menu { 
+position: absolute;
+top: 0;
+left: 0;
+right: 0;
+display: flex;
+margin-left: 50px;
+margin-right: 50px;
+align-items: center;
+justify-content: space-between;
+padding: 20px 50px;
+}
+
+.navbar {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50px);
+}
+
+.logo {
+  color:#f1666d;
+  font-size: 25px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+ul il{
+  position: relative;
+  float: left;
+}
+
+ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.navbar ul li {
+  position: relative;
+  float: left;
+}
+
+.navbar ul li a{
+  font-size: 18px;
+  padding: 20px;
+  color: #333128;
+  display: block;
+  font-weight: 600;
+} 
+ 
+#menu {
+ display: none;
+}
+
+.menu-icono {
+  width: 25px;
+}
+
+.menu label {
+  cursor: pointer;
+  display: none;
+}
+
+.submenu {
+  position: relative;
+}
+
+.submenu #carrito {
+  display: none;
+}
+
+.submenu:hover #carrito {
+  display: block;
+  position: absolute;
+  right: 0;
+  backdrop-filter: blur(10px);
+  top: 100%;
+  z-index: 1;
+  background-color: #808080;
+  padding: 40px;
+  min-width: 70px;  
+}
+
+table { 
+width: 800px;
+height: auto;
+}
+
+th, td {
+  color: #FFFFFF;
+}
+
+.header-content {
+  display: flex;
+}
+
+.header-txt {
+  flex-basis: 50%;
+}  
+
+.header-text {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.header-text span {
+  font-size: 40px;
+  color: #f1666d;
+  font-weight: 700;
+  margin-bottom: 15px;
+  margin-left: 75px;
+  display: block;
+  text-transform: uppercase;
+}
+
+.header-txt h1 {
+  font-size: 55px;
+  line-height: 1;
+  color: #181713;
+  margin-bottom: 25px;
+  margin-left: 75px;
+}
+
+p { 
+font-size: 25px;
+color: #181713;
+margin-bottom: 45px;
+margin-left: 75px;
+}
+
+h3 { 
+font-size: 25px;
+color: #181713; 
+text-transform: capitalize;
+}
+
+.products {
+  padding: 0 0 100px 0;
+  margin-top: 80px;
+  text-align: center;
+}
+
+.products h2 { 
+font-size:40px;
+color: #181713;
+margin top: 30px;
+text-transform: capitalize;
+margin-bottom: 55px;
+}
+
+.product-content {
+  display: grid;
+  margin: auto;
+  justify-content: flex;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 40px;
+}
+
+.product {
+  background-color: #fff;
+  box-shadow: 0 20px rgba(0, 0, 0, 0.2);
+  padding: 50px;
+  text-transform:center;
+  margin-bottom: 40px;
+  text-align: center;
+}
+
+.product: hover {
+  transform: scale(1.05);
+} 
+
+.product img {
+  width: 100%;
+  height: auto;
+  margin: 20px 0;
+}
+
+.product-txt h3 {
+  color: #f1666d;
+  font-size: 20px;
+  margin: auto;
+}
+
+.product-txt P {
+  font-size: 15px;
+  margin:5px 0;
+  color: #181713;
+  font-weight: 600;
+}
+
+.agregar-carrito {
+  display: inline-block;
+  margin-top: 10px;
+  padding: 10px 20px;
+  background-color: #f1666d;
+  color: #fff;
+  text-decoration: none;
+  border-radius: 5px;
+  transition: background-color 0.3s ease;
+  cursor: pointer;
+}
+
+.agregar-carrito hover{
+  background-color: #d94d55;
+}
+
+.btn-2 {
+  display: inline-block;
+  margin-top: 15px;
+  border-radius: 5px;
+  padding: 7px 25px;
+  color: #FFFFFF;
+  background-color: #f1666d;
+  cursor: pointer;
+}
+
+.btn-3 {
+  margin-left: 30px;
+ }
+
+.contact {
+  padding-bottom: 100px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+form {
+  display: flex;
+}
+
+input {
+  padding: 17px 35px;
+  border-radius: 35px;
+  border: 1px solid #f1666d;
+  outline: none;  
+}
+
+.footer {
+  padding: 50px 0;
+  background-color: #f1666d;
+}
+
+.footer-content {
+  display: flex;
+  justify-content: space-between;
+  max-width: 1200px;
+  margin:  auto;
+}
+
+.link h3 {
+  color:#FFFFFF;  
+}
+</style>
+	
+<body>
+
+  <header class="header">
+    <div class="menu container">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24" stroke-width="1.5" stroke="currentcolor" width="40px" height="40px">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"></path></svg>
+      <nav class="navbar">
+        <ul>
+          <li>
+            <a href="Index.html">Inicio</a>
+          </li>
+          <li>
+            <a href="Productos de Tienda.html">Productos</a>
+          </li>
+          <li>
+            <a href="Contacto.html">Contacto</a>
+          </li>
+        </ul>
+      </nav>
+      <div>
+        <ul>
+          <li class="submenu">
+            <div class="icon-car">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24" strokewidth="1.5" stroke="currentcolor" width="40px" height="40px">
+              <path strokelinecap="round" strokelinejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 0 0-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 0 0-16.536-1.84M7.5 14.25 5.106 5.272M6 20.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Zm12.75 0a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z"></path></svg>
+            </div>
+            <div id="carrito">
+              <table id="lista-carrito">
+                <thead>
+                  <tr>
+                    <th>Image</th>
+                    <th>Nombre</th>
+                    <th>Precio</th>
+                    <th></th>
+                  </tr>
+                </thead>
+              </table><a href="#" id="vaciar-carrito" class="btn-2">Vaciar Carrito</a>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </div>
+    <div class="header-text">
+      <span>Productos</span>
+      <h1>Productos de la Tienda</h1>
+      <p>¡Bienvenidos a su tienda de despensa esencial! Aquí les mostramos el catalogo de los mejores productos que tenemos para ofrecer, con la finalidad de que se animen a visitarnos a nuestra sucursal.</p>
+    </div>
+  </header>
+
+    <main class="products container" id="lista-1">
+      <h2>Frutas y Verduras</h2>
+      <div class="product-content">
+        <div class="product">
+          <img src="img/platanos.png" alt="Platano Roatan 1kg">
+          <div class="product-txt">
+            <h3>Producto</h3>
+            <p>Platano Roatan 1kg</p>
+            <p class="precio">$12.90</p><a href="" class="agregar-carrito btn-2" data-id="1">Agregar</a>
+          </div>
+        </div>
+        <div class="product">
+          <img src="img/Manzana.png" alt="Manzana Roja">
+          <div class="product-txt">
+            <h3>Producto</h3>
+            <p>Manzana Roja</p>
+            <p class="precio">$34.90</p><a href="#" class="agregar-carrito btn-2" data-id="1">Agregar</a>
+          </div>
+        </div>
+        <div class="product">
+          <img src="img/Lechuga.png" alt="lechuga-tipo-romana">
+          <div class="product-txt">
+            <h3>Producto</h3>
+            <p>Romana</p>
+            <p class="precio">$20.90</p><a href="#" class="agregar-carrito btn-2" data-id="1">Agregar</a>
+          </div>
+        </div>
+        <div class="product">
+          <img src="img/Limon.png" alt="images">
+          <div class="product-txt">
+            <h3>Producto</h3>
+            <p>Limon</p>
+            <p class="precio">$11.90</p><a href="#" class="agregar-carrito btn-2" data-id="1">Agregar</a>
+          </div>
+        </div>
+        <div class="product">
+          <img src="img/Naranja.png" alt="images">
+          <div class="product-txt">
+            <h3>Producto</h3>
+            <p>Naranja</p>
+            <p class="precio">$29.90</p><a href="#" class="agregar-carrito btn-2" data-id="1">Agregar</a>
+          </div>
+        </div>
+        <div class="product">
+          <img src="img/aguacate.png" alt="images">
+          <div class="product-txt">
+            <h3>Producto</h3>
+            <p>Aguacate</p>
+            <p class="precio">$47.90</p><a href="#" class="agregar-carrito btn-2" data-id="1">Agregar</a>
+          </div>
+        </div>
+        <div class="product">
+          <img src="img/ajo.png" alt="images">
+          <div class="product-txt">
+            <h3>Producto</h3>
+            <p>Ajo</p>
+            <p class="precio">$121.90</p><a href="#" class="agregar-carrito btn-2" data-id="1">Agregar</a>
+          </div>
+        </div>
+        <div class="product">
+          <img src="img/cebolla.png" alt="images">
+          <div class="product-txt">
+            <h3>Producto</h3>
+            <p>Cebolla</p>
+            <p class="precio">$27.90</p><a href="#" class="agregar-carrito btn-2" data-id="1">Agregar</a>
+          </div>
+        </div>
+        <div class="product">
+          <img src="img/cebollaM.png" alt="cebolla morada">
+          <div class="product-txt">
+            <h3>Producto</h3>
+            <p>Morada</p>
+            <p class="precio">$35.90</p><a href="#" class="agregar-carrito btn-2" data-id="1">Agregar</a>
+          </div>
+        </div>
+        <div class="product">
+          <img src="img/Chayote.png" alt="47616_3">
+          <div class="product-txt">
+            <h3>Producto</h3>
+            <p>Chayote</p>
+            <p class="precio">$15.90</p><a href="#" class="agregar-carrito btn-2" data-id="1">Agregar</a>
+          </div>
+        </div>
+        <div class="product">
+          <img src="img/tomate.png">
+          <div class="product-txt">
+            <h3>Producto</h3>
+            <p>Tomate</p>
+            <p class="precio">$10.90</p><a href="#" class="agregar-carrito btn-2" data-id="1">Agregar</a>
+          </div>
+        </div>
+        <div class="product">
+          <img src="img/pepino.png" alt="pepino-jpg">
+          <div class="product-txt">
+            <h3>Producto</h3>
+            <p>Pepino</p>
+            <p class="precio">$18.90</p><a href="#" class="agregar-carrito btn-2" data-id="1">Agregar</a>
+          </div>
+        </div>
+        <div class="product">
+          <img src="img/papa.png">
+          <div class="product-txt">
+            <h3>Producto</h3>
+            <p>Papa</p>
+            <p class="precio">$22.90</p><a href="#" class="agregar-carrito btn-2" data-id="1">Agregar</a>
+          </div>
+        </div>
+        <div class="product">
+          <img src="img/zanahoria.png" alt="images">
+          <div class="product-txt">
+            <h3>Producto</h3>
+            <p>Zanahoria</p>
+            <p class="precio">$12.90</p><a href="#" class="agregar-carrito btn-2" data-id="1">Agregar</a>
+          </div>
+        </div>
+      </div>
+    </main>
+    <main class="products container" id="lista-2">
+      <h2>Carnes y Embutidos</h2>
+      <div class="product-content">
+        <div class="product">
+          <img src="img/longaniza.png">
+          <div class="product-txt">
+            <h3>Producto</h3>
+            <p>Longaniza</p>
+            <p class="precio">$104.90</p><a href="#" class="agregar-carrito btn-2" data-id="2">Agregar</a>
+          </div>
+        </div>
+        <div class="product">
+          <img src="img/salchichas.png" alt="salchicha-chero">
+          <div class="product-txt">
+            <h3>Producto</h3>
+            <p>Salchicha</p>
+            <p class="precio">$105.90</p><a href="#" class="agregar-carrito btn-2" data-id="2">Agregar</a>
+          </div>
+        </div>
+        <div class="product">
+          <img src="img/hebra.png">
+          <div class="product-txt">
+            <h3>Producto</h3>
+            <p>Hebra</p>
+            <p class="precio">$143.90</p><a href="#" class="agregar-carrito btn-2" data-id="2">Agregar</a>
+          </div>
+        </div>
+        <div class="product">
+          <img src="img/fresco.png">
+          <div class="product-txt">
+            <h3>Producto</h3>
+            <p>Fresco</p>
+            <p class="precio">$99.90</p><a href="#" class="agregar-carrito btn-2" data-id="2">Agregar</a>
+          </div>
+        </div>
+        <div class="product">
+          <img src="img/rallado.png" alt="images">
+          <div class="product-txt">
+            <h3>Producto</h3>
+            <p>Queso Rallado</p>
+            <p class="precio">$135.90</p><a href="#" class="agregar-carrito btn-2" data-id="2">Agregar</a>
+          </div>
+        </div>
+        <div class="product">
+          <img src="img/amarillo.png">
+          <div class="product-txt">
+            <h3>Producto</h3>
+            <p>Queso Amarillo</p>
+            <p class="precio">$14.90</p><a href="#" class="agregar-carrito btn-2" data-id="2">Agregar</a>
+          </div>
+        </div>
+        <div class="product">
+          <img src="img/carneenchilada.png">
+          <div class="product-txt">
+            <h3>Producto</h3>
+            <p>Carne Enchilada</p>
+            <p class="precio">$154.90</p><a href="#" class="agregar-carrito btn-2" data-id="2">Agregar</a>
+          </div>
+        </div>
+        <div class="product">
+          <img src="img/tocino.png" alt="tocino-ahumado">
+          <div class="product-txt">
+            <h3>Producto</h3>
+            <p>Tocino</p>
+            <p class="precio">$101.90</p><a href="#" class="agregar-carrito btn-2" data-id="2">Agregar</a>
+          </div>
+        </div>
+      </div>
+         </main>
+    
+<main class="products container" id="lista-3">
+      <h2>Especias</h2>
+      <div class="product-content">
+        <div class="product">
+          <img src="img/canela.png" alt="images">
+          <div class="product-txt">
+            <h3>Producto</h3>
+            <p>Canela</p>
+            <p class="precio">$11.90</p><a href="#" class="agregar-carrito btn-2" data-id="3">Agregar</a>
+          </div>
+        </div>
+        <div class="product">
+          <img src="img/pimientapolvo.png">
+          <div class="product-txt">
+            <h3>Producto</h3>
+            <p>Pimienta en Polvo</p>
+            <p class="precio">$2.90</p><a href="#" class="agregar-carrito btn-2" data-id="3">Agregar</a>
+          </div>
+        </div>
+        <div class="product">
+          <img src="img/pimienta.png" alt="Pimientagorda_1_460x@2x">
+          <div class="product-txt">
+            <h3>Producto</h3>
+            <p>Pimienta</p>
+            <p class="precio">$2.90</p><a href="#" class="agregar-carrito btn-2" data-id="3">Agregar</a>
+          </div>
+        </div>
+        <div class="product">
+          <img src="img/chilepolvo.png" alt="images">
+          <div class="product-txt">
+            <h3>Producto</h3>
+            <p>Chile en Polvo</p>
+            <p class="precio">$2.90</p><a href="#" class="agregar-carrito btn-2" data-id="3">Agregar</a>
+          </div>
+        </div>
+        <div class="product">
+          <img src="img/clavo.png" alt="images">
+          <div class="product-txt">
+            <h3>Producto</h3>
+            <p>Clavo</p>
+            <p class="precio">$2.90</p><a href="#" class="agregar-carrito btn-2" data-id="3">Agregar</a>
+          </div>
+        </div>
+        <div class="product">
+          <img src="img/comino.png" alt="images">
+          <div class="product-txt">
+            <h3>Producto</h3>
+            <p>Comino</p>
+            <p class="precio">$2.90</p><a href="#" class="agregar-carrito btn-2" data-id="3">Agregar</a>
+          </div>
+        </div>
+        <div class="product">
+          <img src="img/epazote.png" alt="images">
+          <div class="product-txt">
+            <h3>Producto</h3>
+            <p>Rollo de Epazote</p>
+            <p class="precio">$149.90</p><a href="#" class="agregar-carrito btn-2" data-id="3">Agregar</a>
+          </div>
+        </div>
+        <div class="product">
+          <img src="img/cilantro.png" alt="01">
+          <div class="product-txt">
+            <h3>Producto</h3>
+            <p>Rollo de Cilantro</p>
+            <p class="precio">$124.90</p><a href="#" class="agregar-carrito btn-2" data-id="3">Agregar</a>
+          </div>
+        </div>
+        <div class="product">
+          <img src="img/laurel.png" alt="images">
+          <div class="product-txt">
+            <h3>Producto</h3>
+            <p>Laurel</p>
+            <p class="precio">$2.90</p><a href="#" class="agregar-carrito btn-2" data-id="3">Agregar</a>
+          </div>
+        </div>
+      </div>
+    </main>
+    
+    <main class="products container" id="lista-4">
+      <h2>Leguminosas</h2>
+      <div class="product-content">
+        <div class="product">
+          <img src="img/frijol.png" alt="abril-publico-autorizacion-cupo-importacion">
+          <div class="product-txt">
+            <h3>Producto</h3>
+            <p>Frijol Michigan</p>
+            <p class="precio">$14.90</p><a href="#" class="agregar-carrito btn-2" data-id="4">Agregar</a>
+          </div>
+        </div>
+        <div class="product">
+          <img src="img/garbanzo.png" alt="images">
+          <div class="product-txt">
+            <h3>Producto</h3>
+            <p>Garbanzo</p>
+            <p class="precio">$12.90</p><a href="#" class="agregar-carrito btn-2" data-id="4">Agregar</a>
+          </div>
+        </div>
+        <div class="product">
+          <img src="img/habas.png" alt="images">
+          <div class="product-txt">
+            <h3>Producto</h3>
+            <p>Habas</p>
+            <p class="precio">$12.90</p><a href="#" class="agregar-carrito btn-2" data-id="4">Agregar</a>
+          </div>
+        </div>
+        <div class="product">
+          <img src="img/ejote.png" alt="images">
+          <div class="product-txt">
+            <h3>Producto</h3>
+            <p>Ejote</p>
+            <p class="precio">$13.90</p><a href="#" class="agregar-carrito btn-2" data-id="4">Agregar</a>
+          </div>
+        </div>
+        <div class="product">
+          <img src="img/Lentejas.png" alt="621_1_1">
+          <div class="product-txt">
+            <h3>Producto</h3>
+            <p>Lentejas</p>
+            <p class="precio">$11.90</p><a href="#" class="agregar-carrito btn-2" data-id="4">Agregar</a>
+          </div>
+        </div>
+        <div class="product">
+          <img src="img/cacahuate.png" alt="images">
+          <div class="product-txt">
+            <h3>Producto</h3>
+            <p>Cacahuate</p>
+            <p class="precio">$14.90</p><a href="#" class="agregar-carrito btn-2" data-id="4">Agregar</a>
+          </div>
+        </div>
+        <div class="product">
+          <img src="img/alubia.png">
+          <div class="product-txt">
+            <h3>Producto</h3>
+            <p>Alubia</p>
+            <p class="precio">$13.90</p><a href="#" class="agregar-carrito btn-2" data-id="4">Agregar</a>
+          </div>
+        </div>
+        <div class="product">
+          <img src="img/chicharos.png" alt="images">
+          <div class="product-txt">
+            <h3>Producto</h3>
+            <p>Chicharos</p>
+            <p class="precio">$13.90</p><a href="#" class="agregar-carrito btn-2" data-id="4">Agregar</a>
+          </div>
+        </div>
+      </div>
+    </main>
+    
+    <main class="products container" id="lista-5">
+      <h2>Abarrotes</h2>
+      <div class="product-content">
+        <div class="product">
+          <img src="img/arroz.png" alt="arroz-blanco-2">
+          <div class="product-txt">
+            <h3>Producto</h3>
+            <p>Arroz</p>
+            <p class="precio">$10.90</p><a href="#" class="agregar-carrito btn-2" data-id="5">Agregar</a>
+          </div>
+        </div>
+        <div class="product">
+          <img src="img/azucar.png" alt="azucar-1024x683">
+          <div class="product-txt">
+            <h3>Producto</h3>
+            <p>Azucar</p>
+            <p class="precio">$13.90</p><a href="#" class="agregar-carrito btn-2" data-id="5">Agregar</a>
+          </div>
+        </div>
+        <div class="product">
+          <img src="img/sal.png" alt="034587030013">
+          <div class="product-txt">
+            <h3>Producto</h3>
+            <p>Sal La Fina</p>
+            <p class="precio">$20.90</p><a href="#" class="agregar-carrito btn-2" data-id="5">Agregar</a>
+          </div>
+        </div>
+        <div class="product">
+          <img src="img/harina.png" alt="harina_1024x">
+          <div class="product-txt">
+            <h3>Producto</h3>
+            <p>Harina</p>
+            <p class="precio">$8.50</p><a href="#" class="agregar-carrito btn-2" data-id="5">Agregar</a>
+          </div>
+        </div>
+        <div class="product">
+          <img src="img/pastachicharron.png" alt="images">
+          <div class="product-txt">
+            <h3>Producto</h3>
+            <p>Pasta para Chicharron</p>
+            <p class="precio">$9.90</p><a href="#" class="agregar-carrito btn-2" data-id="5">Agregar</a>
+          </div>
+        </div>
+        <div class="product">
+          <img src="img/lechelalaentera.png" alt="7501020526066_02">
+          <div class="product-txt">
+            <h3>Producto</h3>
+            <p>Leche Lala Entera 1lt</p>
+            <p class="precio">$27.90</p><a href="#" class="agregar-carrito btn-2" data-id="5">Agregar</a>
+          </div>
+        </div>
+        <div class="product">
+          <img src="img/lechelalasemi.png" alt="75985_01">
+          <div class="product-txt">
+            <h3>Producto</h3>
+            <p>Leche Lala Semidescremada 1lt</p>
+            <p class="precio">$27.90</p><a href="#" class="agregar-carrito btn-2" data-id="5">Agregar</a>
+          </div>
+        </div>
+        <div class="product">
+          <img src="img/lechelaladeslactosada.png" alt="830828-800-800">
+          <div class="product-txt">
+            <h3>Producto</h3>
+            <p>Leche Lala Deslactosada 1lt</p>
+            <p class="precio">$27.90</p><a href="#" class="agregar-carrito btn-2" data-id="5">Agregar</a>
+          </div>
+        </div>
+        <div class="product">
+          <img src="img/nutrileche.png" alt="000023703-2l">
+          <div class="product-txt">
+            <h3>Producto</h3>
+            <p>Nutrileche 1lt</p>
+            <p class="precio">$21.90</p><a href="#" class="agregar-carrito btn-2" data-id="5">Agregar</a>
+          </div>
+        </div>
+        <div class="product">
+          <img src="img/cremadelite.png" alt="images">
+          <div class="product-txt">
+            <h3>Producto</h3>
+            <p>Crema Delite</p>
+            <p class="precio">$11.90</p><a href="#" class="agregar-carrito btn-2" data-id="5">Agregar</a>
+          </div>
+        </div>
+        <div class="product">
+          <img src="img/cremalala.png" alt="7501020511468_3">
+          <div class="product-txt">
+            <h3>Producto</h3>
+            <p>Crema Lala</p>
+            <p class="precio">$17.90</p><a href="#" class="agregar-carrito btn-2" data-id="5">Agregar</a>
+          </div>
+        </div>
+        <div class="product">
+          <img src="img/cremaalpura.png" alt="7501055909537-00-CH1200Wx1200H_1024x1024">
+          <div class="product-txt">
+            <h3>Producto</h3>
+            <p>Media crema Alpura</p>
+            <p class="precio">$17.90</p><a href="#" class="agregar-carrito btn-2" data-id="5">Agregar</a>
+          </div>
+        </div>
+        <div class="product">
+          <img src="img/mermelada.png" alt="00750100333612L">
+          <div class="product-txt">
+            <h3>Producto</h3>
+            <p>Mermelada de Fresa Mc</p>
+            <p class="precio">$69.90</p><a href="#" class="agregar-carrito btn-2" data-id="5">Agregar</a>
+          </div>
+        </div>
+        <div class="product">
+          <img src="img/mayonesa.png" alt="0007621_mayonesa-mccormick-frasco-725-g_625">
+          <div class="product-txt">
+            <h3>Producto</h3>
+            <p>Mayonesa</p>
+            <p class="precio">$97.90</p><a href="#" class="agregar-carrito btn-2" data-id="5">Agregar</a>
+          </div>
+        </div>
+        <div class="product">
+          <img src="img/gelatinas.png" alt="s-l140">
+          <div class="product-txt">
+            <h3>Producto</h3>
+            <p>Gelatina D'gari</p>
+            <p class="precio">$14.90</p><a href="#" class="agregar-carrito btn-2" data-id="5">Agregar</a>
+          </div>
+        </div>
+        <div class="product">
+          <img src="img/maggi.png" alt="Jugo-Maggi-200-Ml-4414-768x768">
+          <div class="product-txt">
+            <h3>Producto</h3>
+            <p>Salsa Maggi</p>
+            <p class="precio">$50.90</p><a href="#" class="agregar-carrito btn-2" data-id="5">Agregar</a>
+          </div>
+        </div>
+      </div>
+    </main>
+
+  <section class="contact container">
+    <form>
+      <input type="email" placeholder="Correo"> <input type="submit" class="btn-3">
+    </form>
+  </section>
+</body>
+</html>
+

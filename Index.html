@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Codigo de Tienda en Línea</title>
+  <link rel="stylesheet" type="text/css" href="style.css">
+  <script>
+document.addEventListener("DOMContentLoaded", function () {
+  // Cargar el carrito global desde localStorage, o inicializarlo vacío si no hay datos previos.
+  let globalCart = JSON.parse(localStorage.getItem("globalCart")) || [];
+
+  // Referencia a la tabla del carrito y su tbody
+  const cartTable = document.getElementById("lista-carrito");
+  let cartTbody = cartTable.querySelector("tbody");
+  if (!cartTbody) {
+    cartTbody = document.createElement("tbody");
+    cartTable.appendChild(cartTbody);
+  }
+
+  // Función para actualizar localStorage con el carrito global
+  function updateLocalStorage() {
+    localStorage.setItem("globalCart", JSON.stringify(globalCart));
+  }
+
+  // Función para actualizar la interfaz del carrito: muestra la imagen, descripción, precio de cada producto y el total.
+  function updateCartUI() {
+    cartTbody.innerHTML = "";
+    let totalPrice = 0;
+    
+    globalCart.forEach((item, index) => {
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td><img src="${item.image}" width="50" alt="${item.desc}"></td>
+        <td>${item.desc}</td>
+        <td>$${item.price.toFixed(2)}</td>
+        <td><button class="remove" data-index="${index}">X</button></td>
+      `;
+      cartTbody.appendChild(row);
+      totalPrice += item.price;
+    });
+
+    if (globalCart.length > 0) {
+      const totalRow = document.createElement("tr");
+      totalRow.innerHTML = `
+        <td colspan="2"><strong>Total:</strong></td>
+        <td colspan="2"><strong>$${totalPrice.toFixed(2)}</strong></td>
+      `;
+      cartTbody.appendChild(totalRow);
+    }
+  }
+  
+  // Al cargar la página se actualiza la interfaz con los posibles productos guardados
+  updateCartUI();
+
+  // Agregar productos al carrito
+  const addCartButtons = document.querySelectorAll(".agregar-carrito");
+  addCartButtons.forEach(function (button) {
+    button.addEventListener("click", function (e) {
+      e.preventDefault();
+      // Subir en el DOM hasta el contenedor del producto
+      const productDiv = this.closest(".product");
+      // Extraer la URL de la imagen
+      const image = productDiv.querySelector("img").src;
+      // Extraer la descripción (se toma el primer párrafo dentro del contenedor .product-txt)
+      const description = productDiv.querySelector(".product-txt p").textContent;
+      // Extraer el precio y convertirlo a número (se remueve el símbolo "$")
+      const priceText = productDiv.querySelector(".precio").textContent;
+      const price = parseFloat(priceText.replace("$", ""));
+      
+      // Crear el objeto producto
+      const product = {
+        image: image,
+        desc: description,
+        price: price
+      };
+      
+      // Agregar el producto al carrito global
+      globalCart.push(product);
+      updateLocalStorage();
+      updateCartUI();
+    });
+  });
+
+  // Permitir eliminar un producto individualmente (delegación de eventos en el tbody de la tabla)
+  cartTbody.addEventListener("click", function (e) {
+    if (e.target.classList.contains("remove")) {
+      const index = e.target.getAttribute("data-index");
+      globalCart.splice(index, 1);
+      updateLocalStorage();
+      updateCartUI();
+    }
+  });
+
+  // Vaciar el carrito global por completo al hacer click en "Vaciar Carrito"
+  document.getElementById("vaciar-carrito").addEventListener("click", function (e) {
+    e.preventDefault();
+    globalCart = [];
+    updateLocalStorage();
+    updateCartUI();
+  });
+});
+
+  </script>
+</head>
+
+<style>
+body {
+  font-family: "Poppins", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+  font-size: 50px;
+  margin: 0;
+  text-align: justify;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  object-fit: cover;
+}
+
+@media (max-width: 768px) {
+    body {
+        font-size: 16px;
+    }
+    .container {
+        max-width: 100%;
+        padding: 10px;
+    }
+    .menu {
+        flex-direction: column;
+        align-items: center;
+    }
+    .header-content {
+        flex-direction: column;
+        text-align: center;
+    }
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Estilos del encabezado */
+.header {
+  background-color: #F7EFD8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 70vh;
+  padding: 100px 0;
+}
+
+/* Menú y navegación */
+.menu {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 50px;
+}
+
+.navbar {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.logo {
+  color: #f1666d;
+  font-size: 25px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.btn-2 {
+  display: inline-block;
+  margin-top: 15px;
+  border-radius: 5px;
+  padding: 7px 25px;
+  color: #FFFFFF;
+  background-color: #f1666d;
+  cursor: pointer;
+}
+
+/* Contenido del encabezado */
+.header-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.header-txt {
+  flex: 1;
+  padding-left: 50px;
+}
+
+.header-txt span {
+  font-size: 50px;
+  color: #f1666d;
+  font-weight: 700;
+  display: block;
+}
+
+.header-txt h1 {
+  font-size: 55px;
+  color: #181713;
+ }
+
+p {
+  font-size: 25px;
+  color: #181713;
+}
+
+/* Sección de servicio */
+.service {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  padding: 50px 0;
+}
+
+.service-1, .service-2, .service-3 {
+  flex-basis: 30%;
+  padding: 25px;
+  background-color: #FAF2DD;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 20px;
+}
+
+/* Contacto */
+.contact {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 50px 0;
+}
+
+input {
+  padding: 15px;
+  border-radius: 35px;
+  border: 1px solid #f1666d;
+  outline: none;
+}
+
+.footer {
+  padding: 50px 0;
+  background-color: #f1666d;
+  text-align: center;
+}
+
+.footer h3 {
+  color: #f1666d;
+}
+</style>
+
+<body>
+<header class="header">
+  <div class="menu container">
+  <!-- Icono SVG a la izquierda -->
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="40px" 
+    height="40px">
+  <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+</svg>
+
+<!-- Menú de navegación centrado -->
+    <nav class="navbar">
+      <ul>
+        <li><a href="Index.html">Inicio</a></li>
+        <li><a href="Productos de Tienda.html">Productos</a></li>
+        <li><a href="Contacto.html">Contacto</a></li>
+      </ul>
+    </nav>
+
+<!-- Menú del Carrito -->
+<div>    
+  <ul>
+    <li class="submenu">
+      <!-- Carrito a la derecha -->
+              <div class="icon-car">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" width="40px" 
+                height="40px">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 0 0-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 0 0-16.536-1.84M7.5 14.25 5.106 5.272M6 20.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Zm12.75 0a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z"/> 
+                </svg>
+              </div>
+          <div id="carrito">
+            <table id="lista-carrito">
+              <thead>
+                <tr>
+                  <th>Image</th>
+                  <th>Nombre</th>
+                  <th>Precio</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+            <a href="#" id="vaciar-carrito" class="btn-2">Vaciar Carrito</a>
+          </div>
+        </li>
+      </ul>
+    </div>
+  </div>
+  
+  <div class="header-content container">
+    
+<div class="header-txt">
+  <span>Ofertas</span>
+  <h1>Elementos de Despensa</h1>
+  <p>¡Bienvenidos a su Tienda de Despensa Esencial!
+    ¿Estás listo para llenar tu despensa con los mejores productos? En nuestra tienda encontraras
+bastantes elementos de despensa de alta calidad que harán que tus comidas sena deliciosas y nutritivas.
+Nos enorgullece ofrecer una amplia gama de productos que satisfacen las necesidades de cada hogar.</p>
+</div>
+<div class="header-img">
+  <img src="https://thumbs.dreamstime.com/b/ilustraci%C3%B3n-conceptual-de-vector-plano-isom%C3%A9trico-d-la-despensa-alimentos-icono-isom%C3%A9trica-plana-caridad-para-luchar-contra-el-218861997.jpg" alt="Imagen de despensa">
+</div>
+  </div>
+</header>
+
+<section class="information container">
+ 
+  <div class="information-content">
+   
+    <div class="information-1">
+      <h3>Calidad</h3>
+    </div>
+
+    <div class="information-2">
+      <h3>Precio</h3>
+    </div>
+
+    <div class="information-3">
+      <h3>Confianza</h3>
+    </div>
+
+</div>
+</div>
+</section>
+
+<section class="service">
+  
+  <div class="service-1">
+    <img src="https://blog.aepla.es/wp-content/uploads/2023/01/beneficios-saludables-frutas-verduras.jpeg">
+  </div>
+
+  <div class="service-2">
+    <img src="https://i0.wp.com/wokii.com/wp-content/uploads/2021/03/frutas-verduras-temporada-marzo-scaled.jpg?fit=2560%2C1739&ssl=1" >
+  </div>
+
+  <div class="service-3">
+    <img src="https://s1.abcstatics.com/media/bienestar/2020/11/01/frutas-verduras-noviembre-kHCF--1248x698@abc.jpg">
+  </div>
+</section>
+ 
+<section class="contact container">
+  
+  <form>
+  <input type="email" placeholder="Correo"> 
+  <input type="submit" class="btn-3">
+  </form>
+
+</section>
+</body>
+</html>
